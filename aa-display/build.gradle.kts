@@ -26,18 +26,24 @@ android {
             )
         )
     }
+
     signingConfigs {
         create("release") {
-            storeFile = file("../key.jks")
-            storePassword = System.getenv("KEY_ANDROID")
-            keyAlias = "key0"
-            keyPassword = System.getenv("KEY_ANDROID")
-            enableV1Signing = false
-            enableV2Signing = false
-            enableV3Signing = true
-            enableV4Signing = true
+            val ksFile = file("../key.jks")
+            val pw = System.getenv("KEY_ANDROID")
+            if (ksFile.exists() && !pw.isNullOrBlank()) {
+                storeFile = ksFile
+                storePassword = pw
+                keyAlias = "key0"
+                keyPassword = pw
+                enableV1Signing = false
+                enableV2Signing = false
+                enableV3Signing = true
+                enableV4Signing = true
+            }
         }
     }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
@@ -46,7 +52,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = if (System.getenv("KEY_ANDROID") != null) {
+            val ksFile = file("../key.jks")
+            val pw = System.getenv("KEY_ANDROID")
+            signingConfig = if (ksFile.exists() && !pw.isNullOrBlank()) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")
@@ -57,13 +65,14 @@ android {
             // Keep debug artifacts unminified to avoid AGP warnings and speed up test builds.
             isMinifyEnabled = false
             isShrinkResources = false
-            if (System.getenv("KEY_ANDROID") != null) {
+            val ksFile = file("../key.jks")
+            val pw = System.getenv("KEY_ANDROID")
+            if (ksFile.exists() && !pw.isNullOrBlank()) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
-
     }
-    
+
     applicationVariants.all {
         val variant = this
         variant.outputs.all {
@@ -72,7 +81,7 @@ android {
             output.outputFileName = "aa-display-${versionName}.apk"
         }
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -140,5 +149,4 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-
 }
